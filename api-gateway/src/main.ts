@@ -74,7 +74,7 @@ async function bootstrap() {
     maxAge: 86400,
   });
 
-  const port = process.env.APP_PORT || 3000;
+  const port = process.env.PORT || process.env.APP_PORT || 3000;
   await app.listen(port);
   console.log(`API Gateway running on http://localhost:${port}/api/v1`);
 }

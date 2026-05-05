@@ -7,7 +7,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  const port = process.env.USERS_SERVICE_PORT || 4002;
+  const port = process.env.PORT || process.env.USERS_SERVICE_PORT || 4002;
   await app.listen(port);
   console.log(`Users Service is running on http://localhost:${port}`);
 }
