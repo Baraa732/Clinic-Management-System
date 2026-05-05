@@ -33,6 +33,10 @@ import Redis from 'ioredis';
       provide: 'REDIS_CLIENT',
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
+        const redisUrl = config.get<string>('REDIS_URL');
+        if (redisUrl) {
+          return new Redis(redisUrl, { tls: redisUrl.startsWith('rediss://') ? {} : undefined, lazyConnect: true });
+        }
         return new Redis({
           host: config.get('REDIS_HOST', 'localhost'),
           port: parseInt(config.get('REDIS_PORT', '6379')),
