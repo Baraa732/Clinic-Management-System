@@ -11,7 +11,7 @@ import {
   ResendVerificationDto,
 } from './dto/auth.dto';
 
-@Controller('internal/auth')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
