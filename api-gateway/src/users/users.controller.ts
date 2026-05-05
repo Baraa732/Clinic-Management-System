@@ -1,12 +1,12 @@
 import {
   Controller, Get, Patch, Body, UseGuards,
-  Query, Param, HttpCode, HttpStatus, Inject,
+  Query, Param, HttpCode, HttpStatus,
   BadRequestException, ConflictException, ForbiddenException,
   NotFoundException, UnauthorizedException, InternalServerErrorException,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { ClientTypeGuard } from '../common/guards/client-type.guard';
@@ -18,108 +18,95 @@ import { UserRole, ClientType } from '../common/enums/user.enum';
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard, ClientTypeGuard)
 export class UsersController {
-  constructor(@Inject('USERS_SERVICE') private usersClient: ClientProxy) {}
+  private usersUrl: string;
+
+  constructor(
+    private readonly http: HttpService,
+    private readonly config: ConfigService,
+  ) {
+    const host = this.config.get('USERS_SERVICE_HOST', 'localhost');
+    const port = this.config.get('USERS_SERVICE_PORT', '4002');
+    this.usersUrl = `http://${host}:${port}/internal/users`;
+  }
+
+  private async call(method: 'get' | 'patch', path: string, data?: any) {
+    try {
+      const res = method === 'get'
+        ? await firstValueFrom(this.http.get(`${this.usersUrl}${path}`))
+        : await firstValueFrom(this.http.patch(`${this.usersUrl}${path}`, data));
+      return res.data;
+    } catch (err) {
+      throw this.mapError(err?.response?.data || err);
+    }
+  }
 
   @Get('profile')
-  async getMyProfile(@CurrentUser() user: any) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_get' }, { userId: user.sub, role: user.role })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  getMyProfile(@CurrentUser() user: any) {
+    return this.call('get', `/profile/${user.sub}?role=${user.role}`);
   }
 
   @Patch('profile')
   @HttpCode(HttpStatus.OK)
-  async updateMyProfile(@CurrentUser() user: any, @Body() updateData: any) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_update' }, { userId: user.sub, role: user.role, updateData })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  updateMyProfile(@CurrentUser() user: any, @Body() updateData: any) {
+    return this.call('patch', `/profile/${user.sub}?role=${user.role}`, updateData);
   }
 
   @Get('doctors')
   @Roles(UserRole.CLINIC_ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
-  async getDoctors(@Query('page') page = 1, @Query('limit') limit = 10) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_get_doctors' }, { page: +page, limit: +limit })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  getDoctors(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.call('get', `/doctors?page=${page}&limit=${limit}`);
   }
 
   @Get('doctors/search')
   @Roles(UserRole.CLINIC_ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
-  async searchDoctors(@Query('q') query: string) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_search_doctors' }, { query })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  searchDoctors(@Query('q') query: string) {
+    return this.call('get', `/doctors/search?q=${query}`);
   }
 
   @Get('doctors/:userId')
   @Roles(UserRole.CLINIC_ADMIN, UserRole.SECRETARY)
-  async getDoctorById(@Param('userId') userId: string) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_get' }, { userId, role: UserRole.DOCTOR })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  getDoctorById(@Param('userId') userId: string) {
+    return this.call('get', `/profile/${userId}?role=${UserRole.DOCTOR}`);
   }
 
   @Get('patients')
   @Roles(UserRole.CLINIC_ADMIN, UserRole.SECRETARY, UserRole.DOCTOR)
-  async getPatients(@Query('page') page = 1, @Query('limit') limit = 10) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_get_patients' }, { page: +page, limit: +limit })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  getPatients(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.call('get', `/patients?page=${page}&limit=${limit}`);
   }
 
   @Get('patients/:userId')
   @Roles(UserRole.CLINIC_ADMIN, UserRole.SECRETARY, UserRole.DOCTOR)
-  async getPatientById(@Param('userId') userId: string) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_get' }, { userId, role: UserRole.PATIENT })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  getPatientById(@Param('userId') userId: string) {
+    return this.call('get', `/profile/${userId}?role=${UserRole.PATIENT}`);
   }
 
   @Get('doctor/dashboard')
   @Roles(UserRole.DOCTOR)
   @AllowedClients(ClientType.MOBILE_DOCTOR)
-  async doctorDashboard(@CurrentUser() user: any) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_get' }, { userId: user.sub, role: UserRole.DOCTOR })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  doctorDashboard(@CurrentUser() user: any) {
+    return this.call('get', `/profile/${user.sub}?role=${UserRole.DOCTOR}`);
   }
 
   @Get('patient/dashboard')
   @Roles(UserRole.PATIENT)
   @AllowedClients(ClientType.MOBILE_PATIENT)
-  async patientDashboard(@CurrentUser() user: any) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_get' }, { userId: user.sub, role: UserRole.PATIENT })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  patientDashboard(@CurrentUser() user: any) {
+    return this.call('get', `/profile/${user.sub}?role=${UserRole.PATIENT}`);
   }
 
   @Get('admin/dashboard')
   @Roles(UserRole.CLINIC_ADMIN)
   @AllowedClients(ClientType.WEB_ADMIN)
-  async adminDashboard(@CurrentUser() user: any) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_get' }, { userId: user.sub, role: UserRole.CLINIC_ADMIN })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  adminDashboard(@CurrentUser() user: any) {
+    return this.call('get', `/profile/${user.sub}?role=${UserRole.CLINIC_ADMIN}`);
   }
 
   @Get('secretary/dashboard')
   @Roles(UserRole.SECRETARY)
   @AllowedClients(ClientType.WEB_SECRETARY)
-  async secretaryDashboard(@CurrentUser() user: any) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'profile_get' }, { userId: user.sub, role: UserRole.SECRETARY })
-        .pipe(catchError((err) => throwError(() => this.mapError(err)))),
-    );
+  secretaryDashboard(@CurrentUser() user: any) {
+    return this.call('get', `/profile/${user.sub}?role=${UserRole.SECRETARY}`);
   }
 
   private mapError(err: any) {

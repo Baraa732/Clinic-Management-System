@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { HttpModule } from '@nestjs/axios';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { APP_GUARD } from '@nestjs/core';
@@ -15,6 +15,7 @@ import Redis from 'ioredis';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    HttpModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -30,7 +31,6 @@ import Redis from 'ioredis';
           ttl: parseInt(config.get('THROTTLE_TTL', '60')) * 1000,
           limit: parseInt(config.get('THROTTLE_LIMIT', '30')),
         }],
-        // Redis-backed storage: rate limit state is shared across all gateway instances
         storage: new ThrottlerStorageRedisService(
           new Redis({
             host: config.get('REDIS_HOST', 'localhost'),
@@ -40,32 +40,6 @@ import Redis from 'ioredis';
         ),
       }),
     }),
-    ClientsModule.registerAsync([
-      {
-        name: 'AUTH_SERVICE',
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory: (config: ConfigService) => ({
-          transport: Transport.TCP,
-          options: {
-            host: config.get('AUTH_SERVICE_HOST', 'localhost'),
-            port: parseInt(config.get('AUTH_SERVICE_PORT', '4001')),
-          },
-        }),
-      },
-      {
-        name: 'USERS_SERVICE',
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory: (config: ConfigService) => ({
-          transport: Transport.TCP,
-          options: {
-            host: config.get('USERS_SERVICE_HOST', 'localhost'),
-            port: parseInt(config.get('USERS_SERVICE_PORT', '4002')),
-          },
-        }),
-      },
-    ]),
   ],
   controllers: [AuthController, UsersController],
   providers: [
