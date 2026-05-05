@@ -1,0 +1,494 @@
+{
+  "info": {
+    "name": "Clinic Management System API",
+    "description": "Comprehensive API collection for the Clinic Management System including Authentication, User Profiles, and Administrative features.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "targetUserId", "value": "user-id-here", "type": "string" },
+    { "key": "sessionId", "value": "session-id-here", "type": "string" },
+    { "key": "verificationToken", "value": "", "type": "string" },
+    { "key": "resetToken", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Registration",
+          "item": [
+            {
+              "name": "Register - Doctor",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/register",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"doctor@clinic.com\",\n  \"password\": \"Doctor@123456\",\n  \"role\": \"doctor\",\n  \"clientType\": \"mobile_doctor\",\n  \"firstName\": \"Ahmed\",\n  \"lastName\": \"Al-Rashid\",\n  \"phone\": \"+9647801234567\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Register - Patient",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/register",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"patient@clinic.com\",\n  \"password\": \"Patient@123456\",\n  \"role\": \"patient\",\n  \"clientType\": \"mobile_patient\",\n  \"firstName\": \"Sara\",\n  \"lastName\": \"Hassan\",\n  \"phone\": \"+9647809876543\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Register - Clinic Admin",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/register",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@clinic.com\",\n  \"password\": \"Admin@123456\",\n  \"role\": \"clinic_admin\",\n  \"clientType\": \"web_admin\",\n  \"firstName\": \"Baraa\",\n  \"lastName\": \"Al-Rifaee\",\n  \"phone\": \"+9647801111111\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Register - Secretary",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/register",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"secretary@clinic.com\",\n  \"password\": \"Secretary@123456\",\n  \"role\": \"secretary\",\n  \"clientType\": \"web_secretary\",\n  \"firstName\": \"Noor\",\n  \"lastName\": \"Khalid\",\n  \"phone\": \"+9647802222222\"\n}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verification",
+          "item": [
+            {
+              "name": "Verify Email",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/verify-email",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Resend Verification",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/resend-verification",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"doctor@clinic.com\"\n}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Session Management",
+          "item": [
+            {
+              "name": "Login - Doctor",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "if (res.data) {",
+                      "  pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                      "  pm.collectionVariables.set('refreshToken', res.data.refreshToken);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"doctor@clinic.com\",\n  \"password\": \"Doctor@123456\",\n  \"clientType\": \"mobile_doctor\",\n  \"deviceInfo\": \"iPhone 15 Pro - iOS 17\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Login - Patient",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"patient@clinic.com\",\n  \"password\": \"Patient@123456\",\n  \"clientType\": \"mobile_patient\",\n  \"deviceInfo\": \"Samsung Galaxy S24\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Login - Admin",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@clinic.com\",\n  \"password\": \"Admin@123456\",\n  \"clientType\": \"web_admin\",\n  \"deviceInfo\": \"Chrome Browser - Windows\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Login - Secretary",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"secretary@clinic.com\",\n  \"password\": \"Secretary@123456\",\n  \"clientType\": \"web_secretary\",\n  \"deviceInfo\": \"Firefox Browser - Windows\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Refresh Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "if (res.data) {",
+                      "  pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                      "  pm.collectionVariables.set('refreshToken', res.data.refreshToken);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/refresh",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Get Active Sessions",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/auth/sessions"
+              }
+            },
+            {
+              "name": "Get Login History",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login-history?limit=10",
+                  "query": [{ "key": "limit", "value": "10" }]
+                }
+              }
+            },
+            {
+              "name": "Revoke Specific Session",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/auth/sessions/{{sessionId}}"
+              }
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+                ],
+                "url": "{{baseUrl}}/auth/logout",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Logout All Sessions",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/auth/logout-all"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Account Security",
+          "item": [
+            {
+              "name": "Get My Auth Profile",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/auth/me"
+              }
+            },
+            {
+              "name": "Change Password",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+                ],
+                "url": "{{baseUrl}}/auth/change-password",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"Doctor@123456\",\n  \"newPassword\": \"Doctor@NewPass789\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Forgot Password",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/forgot-password",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"doctor@clinic.com\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Reset Password",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}/auth/reset-password",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"Doctor@Reset123\"\n}"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Profiles",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/users/profile"
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/users/profile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialization\": \"Cardiology\",\n  \"bio\": \"Experienced cardiologist with 10 years\",\n  \"yearsOfExperience\": 10\n}"
+            }
+          }
+        },
+        {
+          "name": "Dashboards",
+          "item": [
+            {
+              "name": "Doctor Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/users/doctor/dashboard"
+              }
+            },
+            {
+              "name": "Patient Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/users/patient/dashboard"
+              }
+            },
+            {
+              "name": "Admin Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/users/admin/dashboard"
+              }
+            },
+            {
+              "name": "Secretary Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/users/secretary/dashboard"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Discovery",
+      "item": [
+        {
+          "name": "Doctors",
+          "item": [
+            {
+              "name": "Get All Doctors",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/users/doctors?page=1&limit=10",
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "limit", "value": "10" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search Doctors",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/users/doctors/search?q=cardio",
+                  "query": [{ "key": "q", "value": "cardio" }]
+                }
+              }
+            },
+            {
+              "name": "Get Doctor by ID",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/users/doctors/{{targetUserId}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Patients",
+          "item": [
+            {
+              "name": "Get All Patients",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/users/patients"
+              }
+            },
+            {
+              "name": "Get Patient by ID",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+                "url": "{{baseUrl}}/users/patients/{{targetUserId}}"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Administration",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/auth/admin/users"
+          }
+        },
+        {
+          "name": "Admin Revoke User Sessions",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/auth/admin/users/{{targetUserId}}/sessions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Security Tests",
+      "item": [
+        {
+          "name": "TEST - Wrong Role for Client (Should Fail 403)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"doctor@clinic.com\",\n  \"password\": \"Doctor@123456\",\n  \"clientType\": \"web_admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "TEST - No Token (Should Fail 401)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me"
+          }
+        },
+        {
+          "name": "TEST - Invalid Token (Should Fail 401)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer invalid.token.here" }],
+            "url": "{{baseUrl}}/auth/me"
+          }
+        },
+        {
+          "name": "TEST - Weak Password (Should Fail 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@clinic.com\",\n  \"password\": \"123456\",\n  \"role\": \"doctor\",\n  \"clientType\": \"mobile_doctor\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
